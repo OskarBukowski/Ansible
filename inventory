@@ -1,2 +1,5 @@
+[server]
 192.168.0.52
+
+[virtual_machine]
 192.168.0.185
