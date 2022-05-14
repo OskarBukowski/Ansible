@@ -43,7 +43,7 @@
       when: ansible_distribution == 'CentOS'
 
 
-- hosts: virtual_machine
+- hosts: vm
   become: true
   tasks:
 
@@ -60,3 +60,14 @@
         name: mariadb-server
         state: latest
       when: ansible_distribution == 'Ubuntu'
+
+- hosts: aws
+  become: true
+  tasks:
+
+    - name: install service on aws host
+      tags: aws,service
+      service:
+        name: httpd
+        status: started
+      when: ansible_distribution == 'CentOS'
