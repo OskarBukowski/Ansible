@@ -7,16 +7,16 @@
     - name: install updates (Ubuntu)
       tags: always
       apt:
-        upgrade: yes
         update_cache: yes
+        changed_when: false
       when: ansible_distribution == 'Ubuntu'
 
 
     - name: install updates (CentOS)
       tags: always
       dnf:
-        update_only: yes
         update_cache: yes
+        changed_when: false
       when: ansible_distribution == 'CentOS'
 
 
