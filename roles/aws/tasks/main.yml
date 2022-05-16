@@ -1,0 +1,8 @@
+- name: install apache2 and php packages
+  tags: apache,ubuntu
+  apt:
+    name:
+      - "{{ apache_package_name }}"
+      - "{{ php_package_name }}"
+    state: latest
+  notify: restart_apache

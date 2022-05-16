@@ -1,0 +1,7 @@
+- name: restart_apache
+  tags: apache, daemon
+  service:
+    name: "{{ apache_service }}"
+    state: restarted
+    enabled: yes
+  when: apache2.changed
