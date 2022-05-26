@@ -1,0 +1,22 @@
+---
+
+- hosts: all
+  become: true
+  tasks:
+
+    - name: install htop
+      tags: ubuntu, htop
+      apt:
+        name:
+          - htop
+        state: latest
+        update_cache: yes
+      when: ansible_distribution == "Ubuntu"
+
+
+    - name: install bpytop
+      tags: ubuntu, bpytop
+      snap:
+        name:
+          - htop
+      when: ansible_distribution == "Ubuntu"

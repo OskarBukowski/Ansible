@@ -1,0 +1,37 @@
+---
+
+- hosts: all
+  become: true
+  vars_prompt:
+
+    - name: user
+      prompt: Write username
+      private: no
+
+    - name: password
+      prompt: Write password
+      private: yes
+
+
+  tasks:
+    - name: add normal user "{{ user }}"
+      tags: add, normal_user
+      user:
+        name: "{{ user }}"
+        password: "{{ password }}"
+        state: present
+        system: no
+        createhome: yes
+
+    - name: add user with sudo privileges "{{ user }}"
+      tags: add, sudo_user
+      user:
+        name: "{{ user }}"
+        password: "{{ password }}"
+        groups:
+          - sudo
+        state: present
+        system: no
+        createhome: yes
+
+

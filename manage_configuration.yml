@@ -1,0 +1,30 @@
+---
+
+- hosts: all
+  become: true
+  tasks:
+
+    - name: remove previous configuration file
+      tags: remove, old_configuration
+      file:
+        path: /tmp/file.txt
+        state: absent
+
+    - name: copy new configuration file
+      tags: copy, configuration
+      copy:
+        src: /tmp/file.txt
+        dest: /tmp/file.txt
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: make changes
+      tags: change, configuration
+      lineinfile:
+        path: /tmp/file.txt
+        regexp: '^C'
+        line: The change appeared here
+
+
+
