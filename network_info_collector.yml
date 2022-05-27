@@ -1,0 +1,27 @@
+---
+
+- hosts: all
+  become: yes
+  vars_prompt:
+
+    - name: bash_script
+      prompt: Write the bash script name
+      private: no
+
+
+  tasks:
+
+
+    - name: copy bash script to hosts
+      tags: copy_bash_script
+      copy:
+        src: ~/Desktop/Ansible/network_collector.sh
+        dest: /home/ansible/network_collector.sh
+        owner: ansible
+        group: ansible
+        mode: 0644
+
+
+    - name: netstat
+      command:
+

@@ -1,0 +1,45 @@
+---
+
+- hosts: all
+  become: true
+  vars_prompt:
+
+    - name: user
+      prompt: Write username or leave empty
+      private: no
+
+    - name: group
+      prompt: Write group name or leave empty
+      private: no
+
+  tasks:
+
+
+    - name: add sudo privileges
+      tags: add_sudo
+      user:
+        name: "{{ user }}"
+        groups:
+          - sudo
+        append: yes
+
+
+    - name: delete user
+      tags: delete_user
+      user:
+        name: "{{ user }}"
+        state: "absent"
+        remove: yes
+
+    - name: add user to "{{ group }}"
+      tags: add_to_group
+      user:
+        name: "{{ user }}"
+        groups:
+          - sudo
+        append: yes
+
+
+    - name: remove user from "{{ group }}"
+      tags: remove_from_group
+      command: "gpasswd -d {{ user }} {{ group }}"
