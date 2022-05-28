@@ -1,27 +1,43 @@
 ---
 
-- hosts: all
+- hosts: remote
   become: yes
-  vars_prompt:
-
-    - name: bash_script
-      prompt: Write the bash script name
-      private: no
-
-
   tasks:
-
 
     - name: copy bash script to hosts
       tags: copy_bash_script
       copy:
-        src: ~/Desktop/Ansible/network_collector.sh
-        dest: /home/ansible/network_collector.sh
+        src: /home/obukowski/Desktop/Ansible/bash_scripts/network_collector.sh
+        dest: /opt/network_collector.sh
         owner: ansible
         group: ansible
-        mode: 0644
+        mode: 0744
+
+    - name: run script
+      tags: run_script
+      command: /bin/bash /opt/network_collector.sh > /dev/null 2>&1
+
+    - name: fetch netstat files to workstation
+      tags: fetch_netstat_files
+      fetch:
+        src: "/opt/netstat_{{ ansible_hostname }}.txt"
+        dest: /opt/
+        flat: yes
 
 
-    - name: netstat
-      command:
+    - name: fetch lsof files to workstation
+      tags: fetch_lsof_files
+      fetch:
+        src: "/opt/lsof_{{ ansible_hostname }}.txt"
+        dest: /opt/
+        flat: yes
+
+- hosts: localhost
+  connection: local
+  become: yes
+  tasks:
+
+    - name: run local script mergin outputs from remote hosts
+      tags: run_local_script
+      shell: "/bin/bash bash_scripts/join_output.sh"
 

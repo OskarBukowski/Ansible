@@ -31,15 +31,15 @@
         state: "absent"
         remove: yes
 
-    - name: add user to "{{ group }}"
+    - name: add user to {{ group }}
       tags: add_to_group
       user:
         name: "{{ user }}"
         groups:
-          - sudo
+          - "{{ group }}"
         append: yes
 
 
-    - name: remove user from "{{ group }}"
+    - name: remove user from {{ group }}
       tags: remove_from_group
       command: "gpasswd -d {{ user }} {{ group }}"
