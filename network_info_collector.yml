@@ -7,7 +7,7 @@
     - name: copy bash script to hosts
       tags: copy_bash_script
       copy:
-        src: /home/obukowski/Desktop/Ansible/bash_scripts/network_collector.sh
+        src: bash_scripts/network_collector.sh
         dest: /opt/network_collector.sh
         owner: ansible
         group: ansible
@@ -37,7 +37,7 @@
   become: yes
   tasks:
 
-    - name: run local script mergin outputs from remote hosts
+    - name: run local script merging outputs from remote hosts
       tags: run_local_script
       shell: "/bin/bash bash_scripts/join_output.sh"
 
