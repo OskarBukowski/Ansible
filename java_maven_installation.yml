@@ -1,0 +1,34 @@
+---
+
+- hosts: java_running
+  become: yes
+  tasks:
+
+    - name: install jdk
+      tags: install_jdk
+      apt:
+        name:
+          - openjdk-17-jre-headless
+
+    - name: add path for java and javac
+      tags: add_java_path, add_javac_path
+      command: update-alternatives --install /usr/bin/java java /usr/lib/jvm/java-17.0.1-openjdk-amd64/bin/java 1 $$ \
+               update-alternatives --install /usr/bin/javac javac /usr/lib/jvm/java-17.0.1-openjdk-amd64/bin/javac 1
+
+
+    - name: add JAVA_HOME path to environment
+      tags: add_java_path_env
+      command: echo 'JAVA_HOME = "/usr/lib/java-17.0.1-openjdk-amd64/"' >> /etc/environment
+
+
+
+    - name: refresh environment
+      tags: refresh_env
+      command: source /etc/environment
+
+
+    - name: install maven
+      tags: install_maven
+      command: wget https://dlcdn.apache.org/maven/maven-3/3.8.6/source/apache-maven-3.8.6-src.tar.gz
+
+
