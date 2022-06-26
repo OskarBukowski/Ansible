@@ -1,6 +1,6 @@
 ---
 
-- hosts: java_running
+- hosts: vm2
   become: yes
   tasks:
 
@@ -10,16 +10,28 @@
         name:
           - openjdk-17-jre-headless
 
-    - name: add path for java and javac
-      tags: add_java_path, add_javac_path
-      command: update-alternatives --install /usr/bin/java java /usr/lib/jvm/java-17.0.1-openjdk-amd64/bin/java 1 $$ \
-               update-alternatives --install /usr/bin/javac javac /usr/lib/jvm/java-17.0.1-openjdk-amd64/bin/javac 1
+    - name: add default for java
+      tags: add_java_default
+      command:
+        cmd: 'update-alternatives --install /usr/bin/java java /usr/lib/jvm/java-17.0.1-openjdk-amd64/bin/java 1'
+
+    - name: add default for javac
+      tags: add_javac_default
+      command:
+        cmd: 'update-alternatives --install /usr/bin/javac javac /usr/lib/jvm/java-17.0.1-openjdk-amd64/bin/javac 1'
 
 
-    - name: add JAVA_HOME path to environment
-      tags: add_java_path_env
+    - name: add JAVA_HOME global env variable
+      tags: check_java_global_env_variable
+      command:
+        cmd: 'cat /etc/environment | grep "JAVA_HOME"'
+      register: java_home_existence_in_env_path
+      changed_when: false
+
+
+    - when: java_home_existence_in_env_path.failed
+      tags: add_java_global_env_variable
       command: echo 'JAVA_HOME = "/usr/lib/java-17.0.1-openjdk-amd64/"' >> /etc/environment
-
 
 
     - name: refresh environment
@@ -27,8 +39,26 @@
       command: source /etc/environment
 
 
-    - name: install maven
+    - name: check the maven installation file exist
+        tags: check_maven_installation_file_exist
+        command:
+          cmd: 'sudo find /opt -name "apache-maven-3.8.6-src.tar.gz"'
+        register: maven_installer_existence
+        changed_when: false
+
+    - when: maven_installer_existence.failed
       tags: install_maven
-      command: wget https://dlcdn.apache.org/maven/maven-3/3.8.6/source/apache-maven-3.8.6-src.tar.gz
+      command:
+        cmd: 'wget https://dlcdn.apache.org/maven/maven-3/3.8.6/source/apache-maven-3.8.6-src.tar.gz -P /opt'
+
+    - name: add default for maven
+      tags: add_java_default, add_javac_default
+      command:
+        cmd: 'update-alternatives --install /usr/bin/maven maven /opt/apache-maven-3.8.6/bin/mvn 1001'
+
+    - name: add env variable for maven
+      tags: add_maven_env_variable
+      command:
+        cmd: 'export MAVEN_HOME=/opt/apache-maven-3.8.6 && export M2_HOME=/opt/apache-maven-3.8.6'
 
 
