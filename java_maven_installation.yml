@@ -8,17 +8,17 @@
       tags: install_jdk
       apt:
         name:
-          - openjdk-17-jre-headless
+          - openjdk-17-jdk-headless
 
     - name: add default for java
       tags: add_java_default
       command:
-        cmd: 'update-alternatives --install /usr/bin/java java /usr/lib/jvm/java-17.0.1-openjdk-amd64/bin/java 1'
+        cmd: 'update-alternatives --install /usr/bin/java java /usr/lib/jvm/java-17-openjdk-amd64/bin/java 1'
 
     - name: add default for javac
       tags: add_javac_default
       command:
-        cmd: 'update-alternatives --install /usr/bin/javac javac /usr/lib/jvm/java-17.0.1-openjdk-amd64/bin/javac 1'
+        cmd: 'update-alternatives --install /usr/bin/javac javac /usr/lib/jvm/java-17-openjdk-amd64/bin/javac 1'
 
 
     - name: add JAVA_HOME global env variable
@@ -27,6 +27,7 @@
         cmd: 'cat /etc/environment | grep "JAVA_HOME"'
       register: java_home_existence_in_env_path
       changed_when: false
+      ignore_errors: yes
 
 
     - when: java_home_existence_in_env_path.failed
@@ -36,20 +37,21 @@
 
     - name: refresh environment
       tags: refresh_env
-      command: source /etc/environment
+      command:
+        cmd: '/bin/bash /opt/source_refresh.sh'
 
 
     - name: check the maven installation file exist
-        tags: check_maven_installation_file_exist
-        command:
-          cmd: 'sudo find /opt -name "apache-maven-3.8.6-src.tar.gz"'
-        register: maven_installer_existence
-        changed_when: false
+      tags: check_maven_installation_file_exist
+      stat:
+        path: /opt/apache-maven-3.8.6-src.tar.gz
+      register: maven_installer_existence
 
-    - when: maven_installer_existence.failed
+    - name: install maven archive
       tags: install_maven
       command:
         cmd: 'wget https://dlcdn.apache.org/maven/maven-3/3.8.6/source/apache-maven-3.8.6-src.tar.gz -P /opt'
+      when: not maven_installer_existence.exists
 
     - name: add default for maven
       tags: add_java_default, add_javac_default
