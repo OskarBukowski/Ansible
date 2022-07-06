@@ -13,6 +13,7 @@
         group: ansible
         mode: 0744
 
+
     - name: run script
       tags: run_script
       command: /bin/bash /opt/network_collector.sh > /dev/null 2>&1
