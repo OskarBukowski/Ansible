@@ -33,6 +33,7 @@
         dest: /opt/
         flat: yes
 
+
 - hosts: localhost
   connection: local
   become: yes
