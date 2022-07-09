@@ -4,30 +4,31 @@
   become: true
   tasks:
 
-
     - name: set environment variable for compressed file name
       tags: set_file_name
-      command: export S3_FILE_TO_UPLOAD="$(date '+%d-%m-%Y')_$(hostname).tar.gz"
+      shell: export S3_FILE_TO_UPLOAD=$(date '+%d-%m-%Y')_$(hostname).tar.gz && echo $S3_FILE_TO_UPLOAD
+      register: env_s3_var
+
+    - debug:
+        msg : "{{ env_s3_var }}"
+
 
     - name: compress the /opt directory
       tags: compress_opt
-      archive:
-        path: /opt
-        dest: /opt/$S3_FILE_TO_UPLOAD
-        format: gz
+      command: tar -cvzf "/opt/${S3_FILE_TO_UPLOAD}" /opt
 
 
     - name: send file to s3 via aws api
       tags: send_to_s3
-      command: aws s3api put-object --bucket opt8backup --key aws/$S3_FILE_TO_UPLOAD --body $S3_FILE_TO_UPLOAD
+      command: aws s3api put-object --bucket opt8backup --key aws/${S3_FILE_TO_UPLOAD} --body /opt/${S3_FILE_TO_UPLOAD}
 
 
-    - name: create summary from AWS S3 resources
+    - name: create summary from AWS S3 Bucket resources
       tags: s3_summary_to_file
-      command: aws s3 ls s3://opt8backup --recursive --human-readable --summarize >> /opt/s3_summary.txt 2>/dev/null
+      command: aws s3 ls s3://opt8backup --recursive --human-readable --summarize > /opt/s3_summary.txt 2> /dev/null
 
 
-    - name: check if the compressed file reached the bucked
+    - name: check if the compressed file reached the bucket
       tags: check_file_existence_in_bucket
       lineinfile:
         path: /opt/s3_summary.txt
@@ -44,6 +45,8 @@
       file:
         path: /opt/s3_summary.txt
         state: absent
+
+
 
 
 
