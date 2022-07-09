@@ -1,6 +1,6 @@
 ---
 
-- hosts: vm
+- hosts: aws
   become: yes
   tasks:
 
@@ -48,7 +48,7 @@
       tags: add_java_global_env_variable
       lineinfile:
         path: /etc/environment
-        line: 'JAVA_HOME="/usr/lib/java-17-openjdk-amd64" >> /etc/environment'
+        line: 'JAVA_HOME="/usr/lib/java-17-openjdk-amd64"'
       when: not java_home_existence_in_env_path.found
 
 
@@ -61,32 +61,37 @@
     - name: check the maven installation file exist
       tags: check_maven_installation_file_exist
       stat:
-        path: /opt/apache-maven-3.8.6-src.tar.gz
+        path: /opt/apache-maven-3.8.6-bin.tar.gz
       register: maven_installer_existence
 
     - name: install maven archive
       tags: install_maven
       command:
-        cmd: 'wget https://dlcdn.apache.org/maven/maven-3/3.8.6/source/apache-maven-3.8.6-src.tar.gz -P /opt'
+        cmd: 'wget https://dlcdn.apache.org/maven/maven-3/3.8.6/binaries/apache-maven-3.8.6-bin.tar.gz -P /opt'
       when: not maven_installer_existence.stat.exists
 
 
     - name: unpack the maven archive
       tags: unpack_maven_archive
       unarchive:
-        src: /opt/apache-maven-3.8.6-src.tar.gz
+        src: /opt/apache-maven-3.8.6-bin.tar.gz
         dest: /opt/
         remote_src: yes
 
 
     - name: add default for maven
-      tags: add_java_default, add_javac_default
+      tags: add_maven_default
       command:
-        cmd: 'update-alternatives --install /usr/bin/maven maven /opt/apache-maven-3.8.6/apache-maven/src/bin/mvn 1001'
+        cmd: 'update-alternatives --install /usr/bin/maven mvn /opt/apache-maven-3.8.6/bin/mvn 1001'
 
     - name: add env variable for maven
       tags: add_maven_env_variable
       command:
         cmd: '/bin/bash /opt/maven_exports.sh'
+
+    - name: add privileges for mvn
+      tags: add_privileges_for_mvn
+      command:
+        cmd: 'chmod 755 /opt/apache-maven-3.8.6/bin/mvn /opt/apache-maven-3.8.6/bin/mvnDebug /opt/apache-maven-3.8.6/bin/mvnyjp'
 
 
