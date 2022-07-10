@@ -1,31 +1,52 @@
 ---
 
-- hosts: aws
+- hosts: all
   become: true
   tasks:
 
-    - name: set environment variable for compressed file name
-      tags: set_file_name
-      shell: export S3_FILE_TO_UPLOAD=$(date '+%d-%m-%Y')_$(hostname).tar.gz && echo $S3_FILE_TO_UPLOAD
-      register: env_s3_var
+    - name: install awscli
+      tags: install_awscli
+      apt:
+        name:
+          - awscli
+        state: latest
+        update_cache: yes
+      when: ansible_distribution == "Ubuntu"
 
-    - debug:
-        msg : "{{ env_s3_var }}"
+    - name: create directory for AWS credentials
+      tags: create_dir_for_credentials
+      file:
+        path: /home/obukowski/.aws
+        state: directory
+        mode: 0755
+
+    - name: copy credentials file
+      tags: copy_credentials
+      copy:
+        src: /opt/credentials
+        dest: /home/obukowski/.aws/credentials
+        owner: obukowski
+        group: obukowski
+        mode: 0744
 
 
     - name: compress the /opt directory
       tags: compress_opt
-      command: tar -cvzf "/opt/${S3_FILE_TO_UPLOAD}" /opt
+      shell: tar -czf /opt/$(date '+%d-%m-%Y')_$(hostname).tar.gz /opt > /dev/null 2>&1
+      ignore_errors: True
+      no_log: True
 
 
     - name: send file to s3 via aws api
+      become: obukowski
       tags: send_to_s3
-      command: aws s3api put-object --bucket opt8backup --key aws/${S3_FILE_TO_UPLOAD} --body /opt/${S3_FILE_TO_UPLOAD}
+      shell: aws s3api put-object --bucket opt8backup --key aws/$(date '+%d-%m-%Y')_$(hostname).tar.gz --body /opt/$(date '+%d-%m-%Y')_$(hostname).tar.gz
 
 
     - name: create summary from AWS S3 Bucket resources
+      become: obukowski
       tags: s3_summary_to_file
-      command: aws s3 ls s3://opt8backup --recursive --human-readable --summarize > /opt/s3_summary.txt 2> /dev/null
+      shell: aws s3 ls s3://opt8backup --recursive --human-readable --summarize > /opt/s3_summary.txt 2> /dev/null
 
 
     - name: check if the compressed file reached the bucket
